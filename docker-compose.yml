@@ -1,0 +1,45 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dollar-api-java
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8080}:8080"
+    environment:
+      - PORT=8080
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - UPSTREAM_URL=https://dolarapi.com/v1/dolares
+      - CACHE_TTL_SECONDS=300
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - dollar-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: dollar-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - dollar-network
+
+networks:
+  dollar-network:
+    driver: bridge
+
+volumes:
+  redis_data:
+    driver: local
