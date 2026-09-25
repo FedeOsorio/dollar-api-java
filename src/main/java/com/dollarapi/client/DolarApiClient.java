@@ -32,14 +32,14 @@ public class DolarApiClient {
     public List<Quote> fetchQuotes() {
         simulateChaosIfActive();
 
-        log.info("🌐 [UPSTREAM] Fetching latest dollar quotes from {}", upstreamUrl);
+        log.info("[UPSTREAM] Fetching latest dollar quotes from {}", upstreamUrl);
 
         try {
             List<DolarApiResponse> response = restClient.get()
                     .uri(upstreamUrl)
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (req, res) -> {
-                        log.error("❌ [UPSTREAM] Received HTTP {} from external API", res.getStatusCode());
+                        log.error("[UPSTREAM] Received HTTP {} from external API", res.getStatusCode());
                         throw new UpstreamServiceException("Upstream API returned " + res.getStatusCode(), res.getStatusCode().value());
                     })
                     .body(new ParameterizedTypeReference<List<DolarApiResponse>>() {});
@@ -52,7 +52,7 @@ public class DolarApiClient {
         } catch (UpstreamServiceException e) {
             throw e;
         } catch (Exception e) {
-            log.error("❌ [UPSTREAM] Call failed: {}", e.getMessage());
+            log.error("[UPSTREAM] Call failed: {}", e.getMessage());
             throw new UpstreamServiceException("Failed to reach upstream provider: " + e.getMessage(), e, HttpStatus.SERVICE_UNAVAILABLE.value());
         }
     }
@@ -61,11 +61,11 @@ public class DolarApiClient {
         ChaosMode mode = chaosService.getMode();
         switch (mode) {
             case OUTAGE -> {
-                log.warn("🧪 [CHAOS ACTIVE] Simulating 503 Service Unavailable outage");
+                log.warn("[CHAOS] Simulating 503 Service Unavailable outage");
                 throw new UpstreamServiceException("Simulated upstream outage (Chaos Mode: OUTAGE)", HttpStatus.SERVICE_UNAVAILABLE.value());
             }
             case TIMEOUT -> {
-                log.warn("🧪 [CHAOS ACTIVE] Simulating upstream TIMEOUT (Sleeping 3500ms > 2000ms limit)");
+                log.warn("[CHAOS] Simulating upstream TIMEOUT (Sleeping 3500ms > 2000ms limit)");
                 try {
                     Thread.sleep(3500);
                 } catch (InterruptedException e) {
@@ -74,7 +74,7 @@ public class DolarApiClient {
                 throw new UpstreamServiceException("Simulated upstream timeout (Chaos Mode: TIMEOUT)", HttpStatus.GATEWAY_TIMEOUT.value());
             }
             case SLOW -> {
-                log.warn("🧪 [CHAOS ACTIVE] Simulating high latency (Sleeping 1500ms)");
+                log.warn("[CHAOS] Simulating high latency (Sleeping 1500ms)");
                 try {
                     Thread.sleep(1500);
                 } catch (InterruptedException e) {

@@ -1,0 +1,49 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: dollar-api-java-test
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+dollar:
+  upstream:
+    url: https://dolarapi.com/v1/dolares
+    connect-timeout-ms: 500
+    read-timeout-ms: 500
+  cache:
+    ttl-seconds: 60
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      dollarApi:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 4
+        minimumNumberOfCalls: 2
+        failureRateThreshold: 50.0
+        waitDurationInOpenState: 1000ms
+        permittedNumberOfCallsInHalfOpenState: 2
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        recordExceptions:
+          - com.dollarapi.exception.UpstreamServiceException
+          - org.springframework.web.client.RestClientException
+          - java.io.IOException
+
+  retry:
+    instances:
+      dollarApi:
+        maxAttempts: 3
+        waitDuration: 50ms
+        enableExponentialBackoff: false
+        retryExceptions:
+          - com.dollarapi.exception.UpstreamServiceException
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,circuitbreakers
