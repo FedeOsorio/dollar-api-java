@@ -58,8 +58,11 @@ docker compose up --build
 
 1. Abrí **`http://localhost:8080/swagger-ui.html`**.
 2. Probá `GET /api/v1/quotes` ➔ Verás todas las cotizaciones con `X-Cache-Status: HIT` o `MISS`.
-3. Andá a `POST /api/v1/chaos/mode` y poné `OUTAGE` para apagar la API externa:
-   * Volvé a consultar `GET /api/v1/quotes` ➔ **¡Sigue respondiendo 200 OK!** Verás la cabecera `X-Cache-Status: STALE_FALLBACK`.
-   * Consultá `GET /api/v1/health` ➔ Verás el Circuit Breaker en estado `OPEN`.
+3. Andá a `POST /api/v1/chaos/mode` y poné `OUTAGE` para forzar la caída de la API externa:
+   * Volvé a consultar `GET /api/v1/quotes` ➔ **¡Sigue respondiendo 200 OK!** gracias al fallback en caché (`X-Cache-Status: STALE_FALLBACK`).
+   * Consultá `GET /api/v1/health` ➔ Verás el Circuit Breaker en estado **`OPEN`**.
+4. **¿Qué significa el estado `OPEN`?**
+   * El sistema detectó que el proveedor externo está caído y "abrió el disyuntor" para proteger el servidor. En lugar de desperdiciar recursos e intentar llamadas condenadas a fallar, entra en modo **Fail-Fast** y responde de inmediato con el Fallback sin tocar la red.
+5. Volvé a poner `POST /api/v1/chaos/mode` en `NONE` ➔ Verás cómo el circuito pasa a `HALF_OPEN` (prueba) y se recupera automáticamente a **`CLOSED`** (normal).
 
 ---
