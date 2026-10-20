@@ -5,6 +5,16 @@
 
 ---
 
+## Demo en vivo
+
+> La API ya está desplegada en: https://dollar-api-java.onrender.com/
+>
+> Importante: la primera vez puede tardar unos segundos en levantar el servicio. Esperá a que termine el deploy antes de probar la API o Swagger.
+>
+> Swagger UI: https://dollar-api-java.onrender.com/swagger-ui.html
+
+---
+
 ## Autor & Contacto
 * **Federico Gabriel Osorio**
 * **Portfolio:** [portfolio-fedeosorio.vercel.app](https://portfolio-fedeosorio.vercel.app/)
@@ -59,10 +69,10 @@ docker compose up --build
 1. Abrí **`http://localhost:8080/swagger-ui.html`**.
 2. Probá `GET /api/v1/quotes` ➔ Verás todas las cotizaciones con `X-Cache-Status: HIT` o `MISS`.
 3. Andá a `POST /api/v1/chaos/mode` y poné `OUTAGE` para forzar la caída de la API externa:
-   * Volvé a consultar `GET /api/v1/quotes` ➔ **¡Sigue respondiendo 200 OK!** gracias al fallback en caché (`X-Cache-Status: STALE_FALLBACK`).
-   * Consultá `GET /api/v1/health` ➔ Verás el Circuit Breaker en estado **`OPEN`**.
+    * Volvé a consultar `GET /api/v1/quotes` ➔ **¡Sigue respondiendo 200 OK!** gracias al fallback en caché (`X-Cache-Status: STALE_FALLBACK`).
+    * Consultá `GET /api/v1/health` ➔ Verás el Circuit Breaker en estado **`OPEN`**.
 4. **¿Qué significa el estado `OPEN`?**
-   * El sistema detectó que el proveedor externo está caído y "abrió el disyuntor" para proteger el servidor. En lugar de desperdiciar recursos e intentar llamadas condenadas a fallar, entra en modo **Fail-Fast** y responde de inmediato con el Fallback sin tocar la red.
+    * El sistema detectó que el proveedor externo está caído y "abrió el disyuntor" para proteger el servidor. En lugar de desperdiciar recursos e intentar llamadas condenadas a fallar, entra en estado de protección y responde con la última información disponible.
 5. Volvé a poner `POST /api/v1/chaos/mode` en `NONE` ➔ Verás cómo el circuito pasa a `HALF_OPEN` (prueba) y se recupera automáticamente a **`CLOSED`** (normal).
 
 ---
